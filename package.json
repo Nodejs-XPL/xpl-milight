@@ -1,0 +1,25 @@
+{
+  "name": "xpl-milight",
+  "version": "1.0.5",
+  "description": "XPL bridge for Milight RGB lights",
+  "bin": {
+  	"xpl-milight": "./bin/xpl-milight"
+  },
+  "dependencies": {
+	  "xpl-api": ">=1.0.13",
+	  "commander": "~2.3",
+	  "milight": "latest"
+  },
+  "keywords": [
+    "XPL",
+    "milight", "RGB light"
+  ],
+  "files": [
+    "xpl-milight.js",
+    "bin/xpl-milight"
+	],
+  "repository": { "type": "git", "url": "https://github.com/oeuillot/xpl-milight.git" },
+  "author": "Olivier Oeuillot",
+  "license": "GPL",
+  "readmeFilename": "README.md"
+}
