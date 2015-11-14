@@ -76,12 +76,14 @@ commander.command('*').description("Start processing Milight").action(
           }
 
           Async.eachSeries(ns, function(n, callback) {
+            debug("Call command ", n);
             var first = n.first;
             delete n.first;
 
             n.func(first, callback);
 
           }, function(error) {
+            debug("End of commands", error);
             if (error) {
               console.error(error);
             }
