@@ -206,7 +206,7 @@ commander.command('*').description("Start processing Milight").action(
                     current : "disable"
 
                   }, "sensor.basic", callback);
-                });
+                }, callback);
               });
             });
             return;
@@ -235,7 +235,7 @@ commander.command('*').description("Start processing Milight").action(
                     current : "enable"
 
                   }, "sensor.basic", callback);
-                });
+                }, callback);
               });
             });
             return;
