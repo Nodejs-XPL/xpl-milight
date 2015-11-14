@@ -58,11 +58,11 @@ commander.command('*').description("Start processing Milight").action(
 
           var ns = [];
           for ( var n in mcommands) {
-            var x = ncommands[n];
+            var x = mcommands[n];
 
             x.count--;
             if (x.count < 1) {
-              delete ncommands[n];
+              delete mcommands[n];
             }
 
             ns.push(x);
