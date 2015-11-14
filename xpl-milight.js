@@ -51,144 +51,143 @@ commander.command('*').description("Start processing Milight").action(
         console.log("Xpl bind succeed ");
         // xpl.sendXplTrig(body, callback);
 
-        xpl.on("xpl:xpl-cmnd",
-            function(message) {
+        xpl.on("xpl:xpl-cmnd", function(message) {
 
-              debug("Receive message", message);
+          debug("Receive message", message);
 
-              if (message.bodyName !== "delabarre.command" &&
-                  message.bodyName !== "x10.basic") {
+          if (message.bodyName !== "delabarre.command" &&
+              message.bodyName !== "x10.basic") {
+            return;
+          }
+
+          var body = message.body;
+
+          var command = body.command;
+          var device = body.device;
+
+          switch (command) {
+          // Xpl-delabarre
+          case 'status':
+            if (/(enable|enabled|on|1|true)/i.exec(body.current)) {
+              command = "on";
+
+            } else if (/(disable|disabled|off|0|false)/i.exec(body.current)) {
+              command = "off";
+            }
+            break;
+
+          // X10
+          case 'all_units_off':
+          case 'all_lights_off':
+            command = "off";
+            device = "all";
+            break;
+
+          case 'all_units_on':
+          case 'all_lights_on':
+            command = "on";
+            device = "all";
+            break;
+
+          case 'bright':
+            command = "brightness";
+            if (command.data1) {
+              current = parseInt(command.data1, 10) / 255 * 100;
+            }
+            break;
+          }
+
+          var zones = milight.allZones();
+          if (device && device !== "all") {
+            var zs = [];
+            device.split(",").forEach(function(z) {
+              z = z.trim();
+
+              if (deviceAliases) {
+                var nz = deviceAliases[z];
+                if (nz) {
+                  debug("Device alias detected ", z, "=>", nz);
+                  z = nz;
+                }
+              }
+
+              if (!/^[0-9]+$/.exec(z)) {
                 return;
               }
 
-              var body = message.body;
-
-              var command = body.command;
-              var device = body.device;
-
-              switch (command) {
-              // Xpl-delabarre
-              case 'status':
-                if (/(enable|enabled|on|1|true)/i.exec(command.current)) {
-                  command = "on";
-
-                } else if (/(disable|disabled|off|0|false)/i
-                    .exec(command.current)) {
-                  command = "off";
-                }
-                break;
-
-              // X10
-              case 'all_units_off':
-              case 'all_lights_off':
-                command = "off";
-                device = "all";
-                break;
-
-              case 'all_units_on':
-              case 'all_lights_on':
-                command = "on";
-                device = "all";
-                break;
-
-              case 'bright':
-                command = "brightness";
-                if (command.data1) {
-                  current = parseInt(command.data1, 10) / 255 * 100;
-                }
-                break;
-              }
-
-              var zones = milight.allZones();
-              if (device && device !== "all") {
-                var zs = [];
-                device.split(",").forEach(function(z) {
-                  z = z.trim();
-
-                  if (deviceAliases) {
-                    var nz = deviceAliases[z];
-                    if (nz) {
-                      debug("Device alias detected ", z, "=>", nz);
-                      z = nz;
-                    }
-                  }
-
-                  if (!/^[0-9]+$/.exec(z)) {
-                    return;
-                  }
-
-                  zs.push(parseInt(z, 10));
-                });
-
-                if (!zs.length) {
-                  console.error("No device ", device);
-                  return;
-                }
-
-                zones = milight.zone(zs);
-              }
-
-              debug("Process command", command, "zones=", zones);
-
-              switch (command) {
-              case "off":
-                debug("Request OFF zones=", zones);
-                zones.off();
-                return;
-
-              case "nightMode":
-                debug("Request nightMode zones=", zones);
-                zones.nightMode();
-                return;
-
-              case "on":
-                debug("Request ON zones=", zones);
-                zones.on();
-                return;
-
-              case "brightness":
-                var brightness = undefined;
-                if (typeof (current) === "string") {
-                  brightness = parseInt(current, 10);
-                }
-                debug("Request brightness: ", brightness, "zones=", zones);
-                zones.brightness(brightness);
-                return;
-
-              case "white":
-                var white = undefined;
-                if (typeof (current) === "string") {
-                  white = parseInt(current, 10);
-                }
-                debug("Request white: ", white, "zones=", zones);
-                zones.white(white);
-                return;
-
-              case "hsv":
-                var hue = undefined;
-                if (typeof (body.hue) === "string") {
-                  hue = parseInt(body.hue, 10);
-                }
-                var value = undefined;
-                if (typeof (body.value) === "string") {
-                  value = parseInt(body.value, 10);
-                }
-                debug("Request hsv: hue=", hue, "value=", value, "zones=",
-                    zones);
-                zones.hsv(hue, undefined, value);
-                return;
-
-              case "rgb":
-                var red = parseInt(body.red, 10);
-                var green = parseInt(body.green, 10);
-                var blue = parseInt(body.blue, 10);
-
-                debug("Request rgb255: red=", red, "green=", green, "blue=",
-                    blue, "zones=", zones);
-                zones.rgb255(red, green, blue);
-                return;
-              }
+              zs.push(parseInt(z, 10));
             });
+
+            if (!zs.length) {
+              console.error("No device ", device);
+              return;
+            }
+
+            zones = milight.zone(zs);
+          }
+
+          debug("Process command", command, "zones=", zones);
+
+          switch (command) {
+          case "off":
+            debug("Request OFF zones=", zones);
+            zones.off();
+            return;
+
+          case "nightMode":
+            debug("Request nightMode zones=", zones);
+            zones.nightMode();
+            return;
+
+          case "on":
+            debug("Request ON zones=", zones);
+            zones.on();
+            return;
+
+          case "brightness":
+            var brightness = undefined;
+            if (typeof (current) === "string") {
+              brightness = parseInt(current, 10);
+            }
+            debug("Request brightness: ", brightness, "zones=", zones);
+            zones.brightness(brightness);
+            return;
+
+          case "white":
+            var white = undefined;
+            if (typeof (current) === "string") {
+              white = parseInt(current, 10);
+            }
+            debug("Request white: ", white, "zones=", zones);
+            zones.white(white);
+            return;
+
+          case "hsv":
+            var hue = undefined;
+            if (typeof (body.hue) === "string") {
+              hue = parseInt(body.hue, 10);
+            }
+            var value = undefined;
+            if (typeof (body.value) === "string") {
+              value = parseInt(body.value, 10);
+            }
+            debug("Request hsv: hue=", hue, "value=", value, "zones=", zones);
+            zones.hsv(hue, undefined, value);
+            return;
+
+          case "rgb":
+            var red = parseInt(body.red, 10);
+            var green = parseInt(body.green, 10);
+            var blue = parseInt(body.blue, 10);
+
+            debug("Request rgb255: red=", red, "green=", green, "blue=", blue,
+                "zones=", zones);
+            zones.rgb255(red, green, blue);
+            return;
+          }
+
+          console.error("Unsupported command '" + command + "'");
+        });
       });
     });
 
