@@ -97,11 +97,14 @@ commander.command('*').description("Start processing Milight").action(
             break;
           }
 
+          var targetDevices = [];
           var zones = milight.allZones();
           if (device && device !== "all") {
             var zs = [];
             device.split(",").forEach(function(z) {
               z = z.trim();
+
+              var dev = z;
 
               if (deviceAliases) {
                 var nz = deviceAliases[z];
@@ -116,6 +119,7 @@ commander.command('*').description("Start processing Milight").action(
               }
 
               zs.push(parseInt(z, 10));
+              targetDevices.push(dev);
             });
 
             if (!zs.length) {
@@ -131,7 +135,21 @@ commander.command('*').description("Start processing Milight").action(
           switch (command) {
           case "off":
             debug("Request OFF zones=", zones);
-            zones.off();
+            zones.off(function(error) {
+              if (error) {
+                console.error(error);
+                return;
+              }
+
+              async.eachSeries(targetDevices, function(device, callback) {
+                xpl.sendXplStat({
+                  device : device,
+                  type : "status",
+                  current : "disable"
+
+                }, "sensor.basic", callback);
+              });
+            });
             return;
 
           case "nightMode":
@@ -141,7 +159,21 @@ commander.command('*').description("Start processing Milight").action(
 
           case "on":
             debug("Request ON zones=", zones);
-            zones.on();
+            zones.on(function(error) {
+              if (error) {
+                console.error(error);
+                return;
+              }
+
+              async.eachSeries(targetDevices, function(device, callback) {
+                xpl.sendXplStat({
+                  device : device,
+                  type : "status",
+                  current : "enable"
+
+                }, "sensor.basic", callback);
+              });
+            });
             return;
 
           case "brightness":
