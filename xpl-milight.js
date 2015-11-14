@@ -3,6 +3,7 @@ var commander = require('commander');
 var Milight = require('milight');
 var os = require('os');
 var debug = require('debug')('xpl-milight');
+var Async = require('async');
 
 commander.version(require("./package.json").version);
 commander.option("--host <host>", "Hostname of milight gateway");
@@ -141,7 +142,7 @@ commander.command('*').description("Start processing Milight").action(
                 return;
               }
 
-              async.eachSeries(targetDevices, function(device, callback) {
+              Async.eachSeries(targetDevices, function(device, callback) {
                 xpl.sendXplStat({
                   device : device,
                   type : "status",
@@ -165,7 +166,7 @@ commander.command('*').description("Start processing Milight").action(
                 return;
               }
 
-              async.eachSeries(targetDevices, function(device, callback) {
+              Async.eachSeries(targetDevices, function(device, callback) {
                 xpl.sendXplStat({
                   device : device,
                   type : "status",

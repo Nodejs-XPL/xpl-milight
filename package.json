@@ -7,6 +7,7 @@
   },
   "dependencies": {
 	  "xpl-api": "~1.5",
+	  "async": "latest",
 	  "commander": "~2.3",
 	  "milight": "latest",
 	  "debug": "latest"
