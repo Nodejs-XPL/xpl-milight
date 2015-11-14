@@ -278,7 +278,26 @@ commander.command('*').description("Start processing Milight").action(
 
             debug("Request rgb255: red=", red, "green=", green, "blue=", blue,
                 "zones=", zones);
-            zones.rgb255(red, green, blue);
+            addCommand(targetKeys, function(first, callback) {
+              zones.rgb255(red, green, blue, function(error) {
+                if (error) {
+                  return callback(error);
+                }
+
+                if (!first) {
+                  return callback();
+                }
+
+                Async.eachSeries(targetDevices, function(device, callback) {
+                  xpl.sendXplStat({
+                    device : device,
+                    type : "color",
+                    current : "rgb(" + red + "," + green + "," + blue + ")"
+
+                  }, "sensor.basic", callback);
+                }, callback);
+              });
+            });
             return;
           }
 
