@@ -52,6 +52,55 @@ commander.command('*').description("Start processing Milight").action(
         console.log("Xpl bind succeed ");
         // xpl.sendXplTrig(body, callback);
 
+        var mcommands = {};
+        var timeoutId;
+        function onInterval() {
+
+          var ns = [];
+          for ( var n in mcommands) {
+            var x = ncommands[n];
+
+            x.count--;
+            if (x.count < 1) {
+              delete ncommands[n];
+            }
+
+            ns.push(x);
+          }
+
+          debug("onIntervals command=", ns);
+
+          if (!ns.length) {
+            timeoutId = undefined;
+            return;
+          }
+
+          Async.eachSeries(ns, function(n, callback) {
+            var first = n.first;
+            delete n.first;
+
+            n.func(first, callback);
+
+          }, function(error) {
+            if (error) {
+              console.error(error);
+            }
+            timeoutId = setTimeout(onInterval, 200);
+          });
+        }
+        function addCommand(key, func) {
+          mcommands[key] = {
+            count : 5,
+            func : func,
+            first : true
+          }
+
+          if (!timeoutId) {
+            debug("Start timeout ", mcommands);
+            timeoutId = setTimeout(onInterval, 200);
+          }
+        }
+
         xpl.on("xpl:xpl-cmnd", function(message) {
 
           debug("Receive message", message);
@@ -131,24 +180,31 @@ commander.command('*').description("Start processing Milight").action(
             zones = milight.zone(zs);
           }
 
+          var targetKeys = targetDevices.join(',');
+
           debug("Process command", command, "zones=", zones);
 
           switch (command) {
           case "off":
-            debug("Request OFF zones=", zones);
-            zones.off(function(error) {
-              if (error) {
-                console.error(error);
-                return;
-              }
+            debug("Request OFF zones=", targetKeys);
+            addCommand(targetKeys, function(first, callback) {
+              zones.off(function(error) {
+                if (error) {
+                  return callback(error);
+                }
 
-              Async.eachSeries(targetDevices, function(device, callback) {
-                xpl.sendXplStat({
-                  device : device,
-                  type : "status",
-                  current : "disable"
+                if (!first) {
+                  return callback();
+                }
 
-                }, "sensor.basic", callback);
+                Async.eachSeries(targetDevices, function(device, callback) {
+                  xpl.sendXplStat({
+                    device : device,
+                    type : "status",
+                    current : "disable"
+
+                  }, "sensor.basic", callback);
+                });
               });
             });
             return;
@@ -159,20 +215,25 @@ commander.command('*').description("Start processing Milight").action(
             return;
 
           case "on":
-            debug("Request ON zones=", zones);
-            zones.on(function(error) {
-              if (error) {
-                console.error(error);
-                return;
-              }
+            debug("Request ON zones=", targetKeys);
+            addCommand(targetKeys, function(first, callback) {
+              zones.on(function(error) {
+                if (error) {
+                  return callback(error);
+                }
 
-              Async.eachSeries(targetDevices, function(device, callback) {
-                xpl.sendXplStat({
-                  device : device,
-                  type : "status",
-                  current : "enable"
+                if (!first) {
+                  return callback();
+                }
 
-                }, "sensor.basic", callback);
+                Async.eachSeries(targetDevices, function(device, callback) {
+                  xpl.sendXplStat({
+                    device : device,
+                    type : "status",
+                    current : "enable"
+
+                  }, "sensor.basic", callback);
+                });
               });
             });
             return;
