@@ -33,6 +33,8 @@ commander.command('*').description("Start processing Milight").action(
 
       var deviceAliases = Xpl.loadDeviceAliases(commander.deviceAliases);
 
+      debug("Device aliases=", deviceAliases);
+
       var xpl = new Xpl(commander);
 
       xpl.on("error", function(error) {
@@ -106,11 +108,12 @@ commander.command('*').description("Start processing Milight").action(
                   if (deviceAliases) {
                     var nz = deviceAliases[z];
                     if (nz) {
+                      debug("Device alias detected ", z, "=>", nz);
                       z = nz;
                     }
                   }
 
-                  if (!/^[0-9]$/.exec(z)) {
+                  if (!/^[0-9]+$/.exec(z)) {
                     return;
                   }
 
