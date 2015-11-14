@@ -6,9 +6,10 @@
   	"xpl-milight": "./bin/xpl-milight"
   },
   "dependencies": {
-	  "xpl-api": ">=1.0.13",
+	  "xpl-api": "~1.5",
 	  "commander": "~2.3",
-	  "milight": "latest"
+	  "milight": "latest",
+	  "debug": "latest"
   },
   "keywords": [
     "XPL",
